@@ -103,7 +103,7 @@ function processFrames(res) {
     };
 
     promises.push(
-      axios.post("http://localhost:8080/v1/plate-reader/", formData, {
+      axios.post("http://15.206.84.14:8080/v1/plate-reader/", formData, {
         headers,
       })
     );
@@ -111,33 +111,45 @@ function processFrames(res) {
 
   Promise.all(promises)
     .then((responses) => {
-      const results = responses
-        .map((response) => {
-          const plateResult = response.data.results[0];
-          if (!plateResult) return null;
+      const uniqueResults = new Map();
 
-          const plate = plateResult.plate.toUpperCase();
-          const vehicleType = plateResult.vehicle
-            ? plateResult.vehicle.type
-            : null;
-          let authenticationStatus = "New Visitor";
-          let userAssociatedData = null;
+      responses.forEach((response) => {
+        if (response.data.results && response.data.results.length > 0) {
+          response.data.results.forEach((plateResult) => {
+            const plate = plateResult.plate.toUpperCase();
 
-          if (verifiedNumbers.includes(plate)) {
-            authenticationStatus = "Verified";
-            userAssociatedData = userData[plate];
-          }
+            // Skip plates with fewer than 7 characters
+            if (plate.length < 7) return;
 
-          return {
-            plate: plate,
-            score: plateResult.score,
-            authentication: authenticationStatus,
-            user: userAssociatedData,
-            vehicleType: vehicleType,
-          };
-        })
-        .filter((result) => result !== null);
+            const vehicleType = plateResult.vehicle
+              ? plateResult.vehicle.type
+              : null;
+            let authenticationStatus = "New Visitor";
+            let userAssociatedData = null;
 
+            if (verifiedNumbers.includes(plate)) {
+              authenticationStatus = "Verified";
+              userAssociatedData = userData[plate];
+            }
+
+            // If this plate hasn't been seen before, or if it has a higher score than the previous detection
+            if (
+              !uniqueResults.has(plate) ||
+              plateResult.score > uniqueResults.get(plate).score
+            ) {
+              uniqueResults.set(plate, {
+                plate: plate,
+                score: plateResult.score,
+                authentication: authenticationStatus,
+                user: userAssociatedData,
+                vehicleType: vehicleType,
+              });
+            }
+          });
+        }
+      });
+
+      const results = Array.from(uniqueResults.values());
       res.json(results);
       cleanUpFiles();
     })
