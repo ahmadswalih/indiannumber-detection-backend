@@ -6,21 +6,26 @@ const FormData = require("form-data");
 const ffmpeg = require("fluent-ffmpeg");
 const path = require("path");
 const cors = require("cors");
-const app = express();
-const port = 4000;
 
+const app = express();
+const port = 4000 || process.env.PORT;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: "*",
     methods: ["POST", "GET", "PUT", "DELETE", "PATCH"],
   })
 );
-app.use(express.json());
 
-// Set up storage for uploaded files
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Make sure this folder exists
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
     cb(
@@ -31,12 +36,11 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Dummy user data associated with verified numbers
 const userData = {
-  DL7CD5017: {
-    name: "Abhijith",
-    email: "abhijith@gmail.com",
-    phone: "7736012345",
+  DL3CBJ1384: {
+    name: "John Doe",
+    email: "johndoe@example.com",
+    phone: "123-456-7890",
   },
   // Add more user data as needed
 };
@@ -47,7 +51,7 @@ app.post("/upload", upload.single("video"), (req, res) => {
   }
 
   const videoPath = req.file.path;
-  const duration = parseInt(req.body.duration, 10) || 10; // Default to 10 if duration is not provided
+  const duration = parseInt(req.body.duration, 10) || 10;
 
   ffmpeg.ffprobe(videoPath, (err, metadata) => {
     if (err) {
@@ -56,13 +60,12 @@ app.post("/upload", upload.single("video"), (req, res) => {
     }
 
     const videoDuration = metadata.format.duration;
-    const frameCount = Math.min(duration, videoDuration); // Ensure we don't request more frames than the video duration
+    const frameCount = Math.min(duration, videoDuration);
     const width = metadata.streams[0].width;
     const height = metadata.streams[0].height;
     ffmpeg(videoPath)
       .on("end", function () {
         console.log("Frames extraction completed.");
-        // Process the extracted frames
         processFrames(res);
       })
       .on("error", function (err) {
@@ -90,38 +93,33 @@ function processFrames(res) {
     console.log(`Processing frame: ${framePath}`);
 
     const formData = new FormData();
-    formData.append("image", fs.createReadStream(framePath));
-    formData.append("country", "us");
+    formData.append("upload", fs.createReadStream(framePath), {
+      filename: frame,
+      contentType: "image/png",
+    });
 
     const headers = {
       ...formData.getHeaders(),
-      Accept: "application/json",
-      "x-rapidapi-ua": "RapidAPI-Playground",
-      "x-rapidapi-key": "7f624d6b87msh92e2c1a4911e73dp1c2a08jsn03988521d285",
-      "x-rapidapi-host": "openalpr.p.rapidapi.com",
     };
 
-    // Send each frame to OpenALPR API for processing
     promises.push(
-      axios.post(
-        "https://openalpr.p.rapidapi.com/recognize?country=in",
-        formData,
-        { headers }
-      )
+      axios.post("http://15.206.84.14:8080/v1/plate-reader/", formData, {
+        headers,
+      })
     );
   });
 
-  // Wait for all API requests to finish
   Promise.all(promises)
     .then((responses) => {
       const results = responses
-        .map((response, index) => {
-          const plateResult = response.data.results[0]; // Assuming the first result is the most relevant
-          if (!plateResult) return null; // Skip if no plate result
+        .map((response) => {
+          const plateResult = response.data.results[0];
+          if (!plateResult) return null;
 
-          const plate = plateResult.plate;
-          // Skip if plate number length is less than 8
-          if (plate.length < 6) return null;
+          const plate = plateResult.plate.toUpperCase();
+          const vehicleType = plateResult.vehicle
+            ? plateResult.vehicle.type
+            : null;
           let authenticationStatus = "New Visitor";
           let userAssociatedData = null;
 
@@ -131,38 +129,40 @@ function processFrames(res) {
           }
 
           return {
-            //frame: frames[index],
             plate: plate,
-            confidence: plateResult.confidence,
+            score: plateResult.score,
             authentication: authenticationStatus,
             user: userAssociatedData,
+            vehicleType: vehicleType,
           };
         })
-        .filter((result) => result !== null); // Filter out results with no plate
+        .filter((result) => result !== null);
 
       res.json(results);
-      // Clean up uploaded files after processing
       cleanUpFiles();
     })
     .catch((error) => {
       console.error("Error processing frames:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+      } else {
+        console.error("Error setting up request:", error.message);
+      }
       res.status(500).send("Error processing frames.");
-      // Clean up uploaded files after processing
       cleanUpFiles();
     });
 }
 
 function cleanUpFiles() {
-  // Delete uploaded files after processing
   const files = fs.readdirSync("uploads/");
   files.forEach((file) => {
     fs.unlinkSync(`uploads/${file}`);
   });
 }
-
-app.get("/health", (req, res) => {
-  res.send("I am healthy");
-});
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
