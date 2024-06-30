@@ -103,7 +103,7 @@ function processFrames(res) {
     };
 
     promises.push(
-      axios.post("http://15.206.84.14:8080/v1/plate-reader/", formData, {
+      axios.post("http://localhost:8080/v1/plate-reader/", formData, {
         headers,
       })
     );
