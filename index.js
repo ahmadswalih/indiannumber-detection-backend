@@ -103,7 +103,7 @@ function processFrames(res) {
     };
 
     promises.push(
-      axios.post("http://15.206.84.14:8080/v1/plate-reader/", formData, {
+      axios.post("http://localhost:8080/v1/plate-reader/", formData, {
         headers,
       })
     );
@@ -119,7 +119,7 @@ function processFrames(res) {
             const plate = plateResult.plate.toUpperCase();
 
             // Skip plates with fewer than 7 characters
-            if (plate.length < 7) return;
+            // if (plate.length < 7) return;
 
             const vehicleType = plateResult.vehicle
               ? plateResult.vehicle.type
