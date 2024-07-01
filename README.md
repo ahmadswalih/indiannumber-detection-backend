@@ -2,6 +2,37 @@
 
 This project is a Node.js backend application that handles video uploads, extracts frames from the video, and uses a license plate recognition SDK to identify and authenticate vehicles.
 
+## About
+
+This backend application is designed to enhance security and streamline vehicle access management for various facilities such as gated communities, parking structures, or corporate campuses. It provides an automated solution for vehicle identification and authentication, eliminating the need for manual checks and improving overall efficiency.
+
+### Use Case
+
+The primary use case for this application is in scenarios where vehicle access needs to be monitored and controlled:
+
+1. **Gated Communities**: Residents can upload videos of vehicles entering the community. The system automatically recognizes license plates and verifies if the vehicle belongs to a resident or registered visitor.
+
+2. **Parking Structures**: For commercial or public parking areas, the system can quickly process incoming vehicles, identify frequent users, and potentially automate billing or access control.
+
+3. **Corporate Campuses**: Companies can use this system to manage employee and visitor parking, ensuring only authorized vehicles are granted access to the premises.
+
+4. **Event Venues**: For large events with dedicated parking, organizers can use this system to verify attendees' vehicles and manage parking allocations efficiently.
+
+5. **Law Enforcement Support**: While not its primary purpose, the system could potentially assist law enforcement in identifying vehicles of interest in investigations.
+
+### Key Benefits
+
+- **Automated Recognition**: Eliminates the need for manual license plate checks, reducing human error and increasing efficiency.
+- **Quick Processing**: Capable of handling multiple frames from a video, increasing the chances of accurate plate recognition.
+- **User Authentication**: Integrates with a user database to quickly identify known vehicles and their associated information.
+- **Flexible Implementation**: Can be adapted for various scenarios where vehicle identification is needed.
+- **Enhanced Security**: Provides a log of vehicles entering a facility, which can be crucial for security purposes.
+
+By automating the process of vehicle identification and authentication, this application significantly reduces the time and resources needed for manual checks, while also improving accuracy and security.
+
+
+
+
 ## Features
 
 - Video upload handling
