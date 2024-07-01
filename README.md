@@ -10,7 +10,7 @@ This backend application is designed to enhance security and streamline vehicle 
 
 The primary use case for this application is in scenarios where vehicle access needs to be monitored and controlled:
 
-1. **Gated Communities**: Residents can upload videos of vehicles entering the community. The system automatically recognizes license plates and verifies if the vehicle belongs to a resident or registered visitor.
+1. **Gated Communities**: The system automatically recognizes license plates and verifies if the vehicle belongs to a resident or registered visitor.
 
 2. **Parking Structures**: For commercial or public parking areas, the system can quickly process incoming vehicles, identify frequent users, and potentially automate billing or access control.
 
