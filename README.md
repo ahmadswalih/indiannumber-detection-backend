@@ -1,6 +1,6 @@
 # Video Upload and License Plate Recognition Backend
 
-This project is a Node.js backend application that handles video uploads, extracts frames from the video, and uses a license plate recognition API to identify and authenticate vehicles.
+This project is a Node.js backend application that handles video uploads, extracts frames from the video, and uses a license plate recognition SDK to identify and authenticate vehicles.
 
 ## Features
 
