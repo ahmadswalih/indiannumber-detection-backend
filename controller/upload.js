@@ -98,7 +98,7 @@ function processFrames(res) {
     };
 
     promises.push(
-      axios.post("http://localhost:8080/v1/plate-reader/", formData, {
+      axios.post("http://15.206.84.14:8080/v1/plate-reader/", formData, {
         headers,
       })
     );
@@ -145,7 +145,6 @@ function processFrames(res) {
 
       const results = Array.from(uniqueResults.values());
       res.json(results);
-      cleanUpFiles();
     })
     .catch((error) => {
       console.error("Error processing frames:", error);
@@ -160,7 +159,7 @@ function processFrames(res) {
         console.error("Error setting up request:", error.message);
       }
       res.status(500).send("Error processing frames.");
-      cleanUpFiles();
+      //cleanUpFiles();
     });
 }
 
